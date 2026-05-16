@@ -1,0 +1,180 @@
+{
+    "img_width": {
+        "description": "生成图片的宽度",
+        "type": "int",
+        "hint": "设置生成图片的宽度，单位为像素。默认值为 1080。",
+        "default": 1080
+    },
+    "img_height": {
+        "description": "生成图片的高度",
+        "type": "int",
+        "hint": "设置生成图片的高度，单位为像素。默认值为 1920。",
+        "default": 1920
+    },
+    "font_name": {
+        "description": "字体名称",
+        "type": "string",
+        "hint": "设置生成图片中使用的字体名称。默认值为 '千图马克手写体.ttf'(请注意如果要改字体, 需要在插件的font里添加相应的字体)。",
+        "default": "千图马克手写体.ttf"
+    },
+    "avatar_cache_expiration": {
+        "description": "头像缓存过期时间",
+        "type": "int",
+        "hint": "设置头像缓存的过期时间，单位为秒。默认值为 86400 秒（即 24 小时）。",
+        "default": 86400
+    },
+    "avater_size":{
+        "description": "头像尺寸",
+        "type": "list",
+        "item": {
+            "type": "int",
+            "description": "头像的尺寸，单位为像素。"
+        },
+        "hint": "设置头像的尺寸大小，默认为[150, 150]",
+        "default": [150, 150]
+    },
+    "avater_position":{
+        "description": "头像位置",
+        "type": "list",
+        "item": {
+            "type": "int",
+            "description": "头像的位置，单位为像素。"
+        },
+        "hint": "设置头像的尺寸大小，默认为[60, 1350]",
+        "default": [60, 1350]
+    },
+    "date_y_position":{
+        "description": "日期Y轴位置",
+        "type": "int",
+        "hint": "设置日期在图片上Y轴的位置，默认为1300",
+        "default": 1300
+    },
+    "summary_y_position":{
+        "description": "运势总结Y轴位置",
+        "type": "int",
+        "hint": "设置总结在图片上Y轴的位置，默认为1400",
+        "default": 1400
+    },
+    "lucky_star_y_position":{
+        "description": "幸运星Y轴位置",
+        "type": "int",
+        "hint": "设置幸运星在图片上Y轴的位置，默认为1500 例如(★★★★★★☆)",
+        "default": 1500
+    },
+    "sign_text_y_position":{
+        "description": "运势简短文本Y轴位置",
+        "type": "int",
+        "hint": "设置签名在图片上Y轴的位置，默认为1600 例如:(谦恭做事，必得人和，大事成就，一定兴隆)",
+        "default": 1600
+    },
+    "unsign_text_y_position":{
+        "description": "运势详细文本Y轴位置",
+        "type": "int",
+        "hint": "设置无签名在图片上Y轴的位置，默认为1700 例如:(福寿拱照德望高，财子寿全又温和，慈祥好善可恭敬，富贵繁荣得惠泽。财源特佳金钱有餘，离出生之地而往大都市求谋必得更发达。)",
+        "default": 1700
+    },
+    "warning_text_y_position":{
+        "description": "注意事项文本Y轴位置",
+        "type": "int",
+        "hint": "设置注意事项在图片上Y轴的位置，默认为1850 例如:(此运势仅供娱乐参考，请勿过度解读。)",
+        "default": 1850
+    },
+    "jrys_keyword_enabled":{
+        "description": "启用关键字触发",
+        "type": "bool",
+        "hint": "启用后，用户可以通过发送特定的关键字例如 jrys 运势 今日运势关键字来触发插件功能。默认打开",
+        "default": true
+    },
+    "api_tags": {
+        "description": "API 图片标签",
+        "type": "list",
+        "item": {
+            "type": "string",
+            "description": "标签字符串"
+        },
+        "hint": "配置 Lolicon API 搜索标签，如 ['蔚蓝档案', 'Blue Archive']，留空则随机。",
+        "default": []
+    },
+    "api_r18": {
+        "description": "API R18 模式",
+        "type": "int",
+        "hint": "0=非R18，1=R18，2=混合。默认 0。",
+        "default": 0,
+        "slider": {"min": 0, "max": 2, "step": 1}
+    },
+    "cleanup_background_downloads":{
+        "description": "清理按需下载的背景图",
+        "type": "bool",
+        "hint": "插件每次运行按需下载的背景图在生成完成后将被删除，默认开启。如需将按需下载也持久化到本地缓存，请关闭该开关。",
+        "default": true
+    },
+    "holiday_rates_enabled":{
+        "description": "节假日运势高爆率",
+        "type": "bool",
+        "hint": "启用后，插件会根据中国大陆的节假日调整当天的运势，例如在春节期间会增加财运和人缘运势。默认开启。",
+        "default": true
+    },
+    "fixed_daily_fortune":{
+        "description": "每日固定运势",
+        "type": "bool",
+        "hint": "开启后，用户每天抽取的运势是固定的（哪怕重复发指令）。关闭后，每次触发都会随机生成全新运势。",
+        "default": true
+    },
+    "holidays": {
+        "description": "节假日日期列表",
+        "type": "list",
+        "hint": "配置需要触发高爆率的日期 (MM-DD 格式)。",
+        "default": ["01-01", "02-14", "05-01", "10-01", "12-25"]
+    },
+    "normal_rates": {
+        "description": "日常运势爆率权重",
+        "type": "object",
+        "hint": "设置平时的运势抽取概率权重。",
+        "items": {
+            "good": {
+                "description": "大吉 (>=84分) 权重",
+                "type": "int",
+                "default": 40,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            },
+            "normal": {
+                "description": "中吉 (56~70分) 权重",
+                "type": "int",
+                "default": 40,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            },
+            "bad": {
+                "description": "凶运 (<42分) 权重",
+                "type": "int",
+                "default": 20,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            }
+        }
+    },
+    "holiday_rates": {
+        "description": "节假日运势爆率权重",
+        "type": "object",
+        "hint": "设置节假日时的运势抽取概率权重。",
+        "items": {
+            "good": {
+                "description": "大吉 (>=84分) 权重",
+                "type": "int",
+                "default": 85,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            },
+            "normal": {
+                "description": "中吉 (56~70分) 权重",
+                "type": "int",
+                "default": 15,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            },
+            "bad": {
+                "description": "凶 (<42分) 权重",
+                "type": "int",
+                "default": 0,
+                "slider": {"min": 0, "max": 100, "step": 1}
+            }
+        }
+    }    
+
+}

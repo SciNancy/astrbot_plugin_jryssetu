@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile resources.py painter.py main.py)",
+      "Bash(curl -I -s --connect-timeout 10 \"https://i.pixiv.re\")",
+      "Bash(curl -I -s --connect-timeout 10 \"https://i.pixiv.cat\")",
+      "Bash(curl -I -s --connect-timeout 10 \"https://i.pximg.net\" -H \"Referer: https://www.pixiv.net\")"
+    ]
+  }
+}
