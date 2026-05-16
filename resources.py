@@ -190,17 +190,20 @@ class ResourceManager:
         try:
             self._ensure_storage_dirs()
             url = "https://api.lolicon.app/setu/v2"
-            payload = {
+            
+            # 构建请求 payload
+            # 注意：uid 参数是指定 Pixiv 用户 ID，不是随机缓存绕过！
+            base_payload = {
                 "r18": max(0, min(2, r18)),
                 "num": 1,
-                "excludeAI": True,
-                # 添加随机 uid 绕过 API 短期缓存，确保每次返回不同图片
-                "uid": random.randint(10000000, 99999999),
             }
             if keyword:
-                payload["keyword"] = keyword
-
-            logger.info(f"[Setu] 请求 Lolicon API | r18={r18} keyword={keyword} uid={payload['uid']}")
+                base_payload["keyword"] = keyword
+            
+            # 策略1: 排除 AI 生成图片
+            payload = {**base_payload, "excludeAI": True}
+            logger.info(f"[Setu] 请求 Lolicon API (策略1: excludeAI) | r18={r18} keyword={keyword}")
+            
             async with self._session.post(
                 url, headers=self._http_headers, json=payload
             ) as response:
@@ -209,16 +212,30 @@ class ResourceManager:
                     return None
 
                 data = await response.json()
-                # 记录原始响应摘要，便于调试 API 行为
-                logger.debug(f"[Setu] API 原始响应: {data}")
+                # 记录完整响应用于调试
+                logger.info(f"[Setu] API 响应: error={data.get('error')} data_length={len(data.get('data', []))}")
+                
                 if data.get("error"):
                     logger.error(f"[Setu] API 业务错误: {data['error']}")
                     return None
 
                 results = data.get("data", [])
+                
+                # 策略2: 如果策略1无结果，尝试不排除 AI 图片
                 if not results:
-                    # 未返回图片通常是因为 keyword 无匹配或 API 暂时无数据
-                    logger.warning(f"[Setu] API 未返回图片 | payload={payload}")
+                    logger.warning(f"[Setu] 策略1无结果，尝试策略2(不排除AI)")
+                    payload2 = {**base_payload, "excludeAI": False}
+                    async with self._session.post(
+                        url, headers=self._http_headers, json=payload2
+                    ) as response2:
+                        if response2.status == 200:
+                            data2 = await response2.json()
+                            logger.info(f"[Setu] API 响应(策略2): error={data2.get('error')} data_length={len(data2.get('data', []))}")
+                            if not data2.get("error"):
+                                results = data2.get("data", [])
+                
+                if not results:
+                    logger.warning(f"[Setu] API 未返回图片 | 已尝试两种策略")
                     return None
 
                 item = results[0]
