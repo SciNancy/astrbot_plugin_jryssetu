@@ -228,16 +228,20 @@ class JrysPlugin(Star):
     @filter.command("tutu")
     async def tutu_command(self, event: AstrMessageEvent):
         """/tutu [keyword] - 非 R18 涩图"""
-        keyword = event.message_str.strip().removeprefix("/tutu").strip() or None
-        logger.info(f"[CMD] /tutu 被触发 | keyword={keyword}")
+        # 兼容 event.message_str 是否包含命令前缀的两种情况
+        raw = event.message_str.strip()
+        keyword = raw.removeprefix("/tutu").removeprefix("tutu").strip() or None
+        logger.info(f"[CMD] /tutu 被触发 | raw='{raw}' keyword={keyword}")
         async for result in self._handle_setu(event, r18=0, keyword=keyword):
             yield result
 
     @filter.command("setu")
     async def setu_command(self, event: AstrMessageEvent):
         """/setu [keyword] - R18 涩图"""
-        keyword = event.message_str.strip().removeprefix("/setu").strip() or None
-        logger.info(f"[CMD] /setu 被触发 | keyword={keyword}")
+        # 兼容 event.message_str 是否包含命令前缀的两种情况
+        raw = event.message_str.strip()
+        keyword = raw.removeprefix("/setu").removeprefix("setu").strip() or None
+        logger.info(f"[CMD] /setu 被触发 | raw='{raw}' keyword={keyword}")
         async for result in self._handle_setu(event, r18=1, keyword=keyword):
             yield result
 

@@ -209,13 +209,16 @@ class ResourceManager:
                     return None
 
                 data = await response.json()
+                # 记录原始响应摘要，便于调试 API 行为
+                logger.debug(f"[Setu] API 原始响应: {data}")
                 if data.get("error"):
                     logger.error(f"[Setu] API 业务错误: {data['error']}")
                     return None
 
                 results = data.get("data", [])
                 if not results:
-                    logger.warning("[Setu] API 未返回图片")
+                    # 未返回图片通常是因为 keyword 无匹配或 API 暂时无数据
+                    logger.warning(f"[Setu] API 未返回图片 | payload={payload}")
                     return None
 
                 item = results[0]
