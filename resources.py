@@ -147,14 +147,15 @@ class ResourceManager:
         """调用 Lolicon API 获取随机图片 URL"""
         try:
             url = "https://api.lolicon.app/setu/v2"
+            # 注意：uid 参数是指定 Pixiv 用户 ID，不是随机缓存绕过！
             payload = {
                 "r18": self.api_r18,
                 "num": 1,
-                # 添加随机 uid 绕过 API 短期缓存
-                "uid": random.randint(10000000, 99999999),
             }
             if self.api_tags:
                 payload["tag"] = self.api_tags
+
+            logger.info(f"[Background] 请求 Lolicon API | r18={self.api_r18} tags={self.api_tags}")
 
             async with self._session.post(
                 url, headers=self._http_headers, json=payload
@@ -164,6 +165,8 @@ class ResourceManager:
                     return None
 
                 data = await response.json()
+                logger.info(f"[Background] API 响应: error={data.get('error')} data_length={len(data.get('data', []))}")
+                
                 if data.get("error"):
                     logger.error(f"Lolicon API 错误: {data['error']}")
                     return None
@@ -175,7 +178,9 @@ class ResourceManager:
 
                 urls = results[0].get("urls", {})
                 # 优先原图，fallback 到 regular
-                return urls.get("original") or urls.get("regular")
+                image_url = urls.get("original") or urls.get("regular")
+                logger.info(f"[Background] API 返回图片 URL: {image_url}")
+                return image_url
         except Exception as e:
             logger.error(f"调用 Lolicon API 失败: {e}")
             return None
