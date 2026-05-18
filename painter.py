@@ -612,6 +612,74 @@ class FortunePainter:
         ]
         return random.choices(light_colors, k=4)  # 随机选4个颜色进行渐变
 
+    @staticmethod
+    def compress_image_for_send(
+        image_path: str,
+        max_size: int = 2400,
+        target_size_bytes: int = 1024 * 1024,
+    ) -> Optional[str]:
+        """
+        将图片压缩到目标文件大小以内，防止因原图过大导致协议层上传超时。
+        先限制分辨率，再调整 JPEG quality，优先保画质。
+
+        参数：
+            image_path (str): 原始图片路径
+            max_size (int): 最大边长限制，默认 2400
+            target_size_bytes (int): 目标文件大小，默认 1MB
+
+        返回：
+            str: 压缩后的临时文件路径；如果无需压缩或失败则返回原始路径
+        """
+        try:
+            original_size = os.path.getsize(image_path)
+            with Image.open(image_path) as img:
+                width, height = img.size
+
+                # 尺寸和大小都安全，直接返回原路径
+                if max(width, height) <= max_size and original_size <= target_size_bytes:
+                    return image_path
+
+                # 等比缩放到最大边为 max_size
+                if max(width, height) > max_size:
+                    scale = max_size / max(width, height)
+                    width = int(width * scale)
+                    height = int(height * scale)
+                    img = img.resize((width, height), Image.LANCZOS)
+
+                # 统一转为 RGB
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+
+                # 二分查找最合适的 quality，使文件大小 <= target_size_bytes
+                fd, tmp_path = tempfile.mkstemp(suffix=".jpg")
+                os.close(fd)
+
+                low, high = 30, 95
+                best_quality = low
+                while low <= high:
+                    mid = (low + high) // 2
+                    img.save(tmp_path, format="JPEG", quality=mid, optimize=True)
+                    file_size = os.path.getsize(tmp_path)
+                    if file_size <= target_size_bytes:
+                        best_quality = mid
+                        low = mid + 1  # 尝试更高画质
+                    else:
+                        high = mid - 1
+
+                # 最终用 best_quality 保存
+                if best_quality >= 30:
+                    img.save(tmp_path, format="JPEG", quality=best_quality, optimize=True)
+                final_size = os.path.getsize(tmp_path)
+                logger.info(
+                    f"图片压缩: {width}x{height} -> quality={best_quality}, "
+                    f"大小: {original_size / 1024:.1f}KB -> {final_size / 1024:.1f}KB, "
+                    f"临时文件: {tmp_path}"
+                )
+                return tmp_path
+        except Exception as e:
+            logger.error(f"压缩图片失败，将使用原图: {e}")
+            return image_path
+
     def draw_avatar_img(self, avatar_path: str, img: Image.Image) -> Image.Image:
         """
         在图片上绘制用户头像

@@ -67,7 +67,16 @@ class JrysPlugin(Star):
             )
             return
 
-        yield event.image_result(path)
+        # 压缩后再发送，防止大图片超时
+        compressed_path = FortunePainter.compress_image_for_send(path)
+        try:
+            yield event.image_result(compressed_path or path)
+        finally:
+            if compressed_path and compressed_path != path:
+                try:
+                    await aiofiles.os.remove(compressed_path)
+                except Exception:
+                    pass
 
     # 处理器2：关键词处理器
     @filter.event_message_type(filter.EventMessageType.ALL)
@@ -250,24 +259,34 @@ class JrysPlugin(Star):
     ):
         """涩图业务逻辑：获取并发送图片"""
         image_path = None
+        compressed_path = None
         try:
             image_path = await self.resources.fetch_setu_image(r18=r18, keyword=keyword)
             if not image_path:
                 yield event.plain_result("图片获取失败，请稍后重试")
                 return
 
-            yield event.image_result(image_path)
+            # 压缩后再发送，防止大图片超时
+            compressed_path = FortunePainter.compress_image_for_send(image_path)
+            yield event.image_result(compressed_path or image_path)
             logger.info("[Setu] 图片发送成功")
         except Exception:
             logger.exception("[Setu] 处理涩图请求时发生异常")
             yield event.plain_result("处理请求时发生错误，请稍后重试")
         finally:
+            # 清理原图
             if image_path and os.path.exists(image_path):
                 try:
                     await aiofiles.os.remove(image_path)
                     logger.info("[Setu] 临时图片已清理")
                 except Exception as e:
                     logger.warning(f"[Setu] 清理临时图片失败: {e}")
+            # 清理压缩后的临时图
+            if compressed_path and compressed_path != image_path:
+                try:
+                    await aiofiles.os.remove(compressed_path)
+                except Exception:
+                    pass
 
     async def terminate(self):
         """插件终止时的清理工作"""
